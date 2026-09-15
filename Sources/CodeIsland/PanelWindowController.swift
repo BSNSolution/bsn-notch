@@ -133,6 +133,8 @@ class PanelWindowController: NSObject, NSWindowDelegate {
     private var panel: NSPanel?
     private var hostingView: NotchHostingView<NotchPanelView>?
     private let appState: AppState
+    /// BSN: estado de expansão da coluna lateral (hover).
+    private var sideExpanded = false
 
     nonisolated static func screenHopFrames(
         oldFrame: NSRect,
@@ -147,6 +149,20 @@ class PanelWindowController: NSObject, NSWindowDelegate {
 
     private func panelSize(for screen: NSScreen) -> NSSize {
         let maxSessions = CGFloat(max(2, UserDefaults.standard.integer(forKey: SettingsKey.maxVisibleSessions)))
+
+        // BSN: modo lateral direita = coluna vertical estreita colada na borda,
+        // os itens empilhados um sob o outro (como o codenotch). A altura ABRAÇA
+        // o número real de agentes (mínimo 1), sem esticar pela tela.
+        if SettingsManager.shared.notchEdge == "right" {
+            // Janela SEMPRE larga o suficiente p/ o conteúdo expandido; a expansão
+            // é visual (dentro da janela), sem redimensionar — evita flicker/loop.
+            // A área à esquerda é transparente e não captura mouse.
+            let width: CGFloat = 340
+            // altura generosa (lista rica quando expande + footer); rola internamente.
+            let colH = min(screen.visibleFrame.height - 16, 620)
+            return NSSize(width: width, height: colH)
+        }
+
         let desiredH = max(300, maxSessions * 90 + 60)
         // Clamp to the screen's usable height. A borderless, non-opaque panel with a
         // very tall backing store (e.g. maxVisibleSessions=99 → 8970pt, ~18k px tall on
@@ -163,6 +179,18 @@ class PanelWindowController: NSObject, NSWindowDelegate {
 
     private var panelSize: NSSize {
         panelSize(for: chosenScreen())
+    }
+
+    /// BSN: nº de itens que a coluna lateral desenha (agentes ativos; mínimo 1
+    /// para o marcador ocioso). Usado para dimensionar a altura da caixa lateral.
+    private func activeSessionCountForLayout() -> Int {
+        max(1, appState.sessions.count)
+    }
+
+    /// BSN: esconde de prints/gravações só se a config "hideFromCapture" estiver
+    /// ligada (`.none`); senão aparece normalmente (`.readOnly`).
+    private func applySharingType(to panel: NSWindow) {
+        panel.sharingType = SettingsManager.shared.hideFromCapture ? .none : .readOnly
     }
 
     private var visibilityTimer: Timer?
@@ -236,9 +264,9 @@ class PanelWindowController: NSObject, NSWindowDelegate {
         panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-        panel.sharingType = .readOnly
         panel.contentView = contentView
         panel.delegate = self
+        applySharingType(to: panel)
 
         self.panel = panel
         self.lastChosenScreenSignature = ScreenDetector.signature(for: screen)
@@ -262,6 +290,16 @@ class PanelWindowController: NSObject, NSWindowDelegate {
                 self?.refreshCurrentScreen(forceRebuild: true)
             }
         }
+
+        // BSN: usuário trocou a posição (topo ↔ lateral) nas Settings → reposiciona.
+        NotificationCenter.default.addObserver(
+            forName: .init("BSNNotchEdgeChanged"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.refreshCurrentScreen(forceRebuild: true) }
+        }
+
 
         // Active space change — check fullscreen
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -357,6 +395,7 @@ class PanelWindowController: NSObject, NSWindowDelegate {
         self.hostingView = contentView
         panel.contentView = contentView
         lastChosenScreenSignature = ScreenDetector.signature(for: screen)
+        applySharingType(to: panel)   // BSN: atualiza "some em prints" ao trocar de modo
         updatePosition()
     }
 
@@ -499,6 +538,17 @@ class PanelWindowController: NSObject, NSWindowDelegate {
     private func panelFrame(for screen: NSScreen) -> NSRect {
         let size = panelSize(for: screen)
         let screenFrame = screen.frame
+
+        // BSN: modo lateral direita — coluna GRUDADA na borda direita (sem margem),
+        // começando logo abaixo da barra de menu. Cantos arredondados só do lado
+        // interno ficam a cargo da view.
+        if SettingsManager.shared.notchEdge == "right" {
+            let vf = screen.visibleFrame
+            let x = screenFrame.maxX - size.width          // encosta na borda
+            let y = vf.maxY - size.height                   // topo logo abaixo do menu bar
+            return NSRect(x: x, y: y, width: size.width, height: size.height)
+        }
+
         let centeredX = centeredX(for: size, screen: screen)
         let dragOffset = SettingsManager.shared.allowHorizontalDrag
             ? CGFloat(SettingsManager.shared.panelHorizontalOffset)

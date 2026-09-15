@@ -92,6 +92,7 @@ struct NotchPanelView: View {
     let notchW: CGFloat
     let screenWidth: CGFloat
 
+    @AppStorage(SettingsKey.notchEdge) private var notchEdge = SettingsDefaults.notchEdge
     @AppStorage(SettingsKey.contentFontSize) private var contentFontSize = SettingsDefaults.contentFontSize
     @AppStorage(SettingsKey.showAgentDetails) private var showAgentDetails = SettingsDefaults.showAgentDetails
     @AppStorage(SettingsKey.smartSuppress) private var smartSuppress = SettingsDefaults.smartSuppress
@@ -163,6 +164,14 @@ struct NotchPanelView: View {
     }
 
     var body: some View {
+        // BSN: modo lateral direita → coluna vertical dedicada.
+        if notchEdge == "right" {
+            return AnyView(SideColumnView(appState: appState, panelWidth: 76))
+        }
+        return AnyView(horizontalBody)
+    }
+
+    private var horizontalBody: some View {
         VStack(spacing: 0) {
             VStack(spacing: 0) {
                 if showBar {
@@ -1758,7 +1767,7 @@ private struct PixelButton: View {
 
 // MARK: - Session List
 
-private struct SessionListView: View {
+struct SessionListView: View {
     var appState: AppState
     /// When set, only show this session (auto-expand on completion)
     var onlySessionId: String? = nil

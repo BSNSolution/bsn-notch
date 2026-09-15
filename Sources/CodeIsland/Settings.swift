@@ -24,6 +24,10 @@ enum SettingsKey {
     // General - System
     static let launchAtLogin = "launchAtLogin"
     static let displayChoice = "displayChoice"             // "auto", "builtin", "main"
+    // BSN: onde o painel vive — "top" (island, no notch) ou "right" (lateral direita)
+    static let notchEdge = "notchEdge"                     // "top" | "right"
+    // BSN: esconder o painel de screenshots/gravações (true = some de prints)
+    static let hideFromCapture = "hideFromCapture"
     static let allowHorizontalDrag = "allowHorizontalDrag"
     static let avoidMenuBarIcons = "avoidMenuBarIcons"
     static let panelHorizontalOffset = "panelHorizontalOffset"
@@ -138,6 +142,8 @@ enum SettingsKey {
 
 struct SettingsDefaults {
     static let displayChoice = "auto"
+    static let notchEdge = "top"   // BSN: "top" (island) | "right" (lateral)
+    static let hideFromCapture = false   // BSN: por padrão aparece em prints (ligar depois)
     static let allowHorizontalDrag = false
     static let avoidMenuBarIcons = true  // #219: dodge Bartender & friends on external screens
     static let panelHorizontalOffset = 0.0
@@ -225,6 +231,8 @@ class SettingsManager {
     private init() {
         defaults.register(defaults: [
             SettingsKey.displayChoice: SettingsDefaults.displayChoice,
+            SettingsKey.notchEdge: SettingsDefaults.notchEdge,
+            SettingsKey.hideFromCapture: SettingsDefaults.hideFromCapture,
             SettingsKey.allowHorizontalDrag: SettingsDefaults.allowHorizontalDrag,
             SettingsKey.avoidMenuBarIcons: SettingsDefaults.avoidMenuBarIcons,
             SettingsKey.panelHorizontalOffset: SettingsDefaults.panelHorizontalOffset,
@@ -294,6 +302,18 @@ class SettingsManager {
                 // Login item update may fail silently in sandboxed environments
             }
         }
+    }
+
+    /// BSN: borda onde o painel vive — "top" (island) ou "right" (lateral direita).
+    var notchEdge: String {
+        get { defaults.string(forKey: SettingsKey.notchEdge) ?? SettingsDefaults.notchEdge }
+        set { defaults.set(newValue, forKey: SettingsKey.notchEdge) }
+    }
+
+    /// BSN: esconder de screenshots/gravações.
+    var hideFromCapture: Bool {
+        get { defaults.object(forKey: SettingsKey.hideFromCapture) as? Bool ?? SettingsDefaults.hideFromCapture }
+        set { defaults.set(newValue, forKey: SettingsKey.hideFromCapture) }
     }
 
     var displayChoice: String {

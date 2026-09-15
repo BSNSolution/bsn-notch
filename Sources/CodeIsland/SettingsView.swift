@@ -317,6 +317,8 @@ private struct SidebarRow: View {
 private struct GeneralPage: View {
     @ObservedObject private var l10n = L10n.shared
     @AppStorage(SettingsKey.displayChoice) private var displayChoice = SettingsDefaults.displayChoice
+    @AppStorage(SettingsKey.notchEdge) private var notchEdge = SettingsDefaults.notchEdge
+    @AppStorage(SettingsKey.hideFromCapture) private var hideFromCapture = SettingsDefaults.hideFromCapture
     @AppStorage(SettingsKey.allowHorizontalDrag) private var allowHorizontalDrag = SettingsDefaults.allowHorizontalDrag
     @AppStorage(SettingsKey.avoidMenuBarIcons) private var avoidMenuBarIcons = SettingsDefaults.avoidMenuBarIcons
     @State private var launchAtLogin: Bool
@@ -364,6 +366,19 @@ private struct GeneralPage: View {
                         Text(label).tag("screen_\(index)")
                     }
                 }
+                // BSN: posição do painel — topo (island) ou lateral direita
+                Picker("Posição", selection: $notchEdge) {
+                    Text("Topo (island)").tag("top")
+                    Text("Lateral direita").tag("right")
+                }
+                .onChange(of: notchEdge) { _, _ in
+                    NotificationCenter.default.post(name: .init("BSNNotchEdgeChanged"), object: nil)
+                }
+                // BSN: esconder de screenshots/gravações
+                Toggle("Esconder de screenshots", isOn: $hideFromCapture)
+                    .onChange(of: hideFromCapture) { _, _ in
+                        NotificationCenter.default.post(name: .init("BSNNotchEdgeChanged"), object: nil)
+                    }
             }
         }
         .formStyle(.grouped)

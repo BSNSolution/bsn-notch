@@ -24,11 +24,10 @@ final class StatusItemController: NSObject {
     }
 
     private func syncVisibility() {
-        if SettingsManager.shared.hideWhenNoSession {
-            showStatusItem()
-        } else {
-            hideStatusItem()
-        }
+        // BSN: o ícone da barra de menu (com Configurações + Sair) fica SEMPRE
+        // visível — é a única forma garantida de abrir as settings e fechar o app,
+        // já que o painel pode estar colapsado / escondido de captura.
+        showStatusItem()
     }
 
     private func showStatusItem() {

@@ -99,3 +99,8 @@ Modo topo (island) + lateral direita (S concavo fluido colado na borda, compacto
 ## ADENDO 05:45 — Shape FINAL aprovado (img #158)
 - SideColumnShape com S concavo na esquerda + n=min(notchCurve, height/3) ficou bom nos DOIS estados: colapsado fluido/discreto (#156), expandido suave sem deformar (#158). APROVADO pelo Cristhyan.
 - Formato do lateral: FECHADO.
+
+## ADENDO 06:00 — Fix: icone da barra de menu SEMPRE visivel (fechar o app)
+- BUG herdado: StatusItemController.syncVisibility so mostrava o icone se hideWhenNoSession estava LIGADO (default off) → usuario nunca via como fechar/abrir settings.
+- FIX: syncVisibility sempre chama showStatusItem(). Icone (pilula com 2 olhos) na barra de menu com menu Configuracoes + Sair.
+- 3 formas de fechar: (1) icone barra de menu → Sair, (2) botao power vermelho no notch expandido (modo topo), (3) pkill CodeIsland.

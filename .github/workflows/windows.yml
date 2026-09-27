@@ -1,11 +1,16 @@
 name: Windows
 
+# ⏸️ 27/09/2026: gatilhos automáticos PAUSADOS — cota Free do GitHub Actions da org esgotou.
+# Padrão agora: `ci:local` antes do push (ver AI/NOTES). Para reativar, troque o bloco `on:` pelo original abaixo.
 on:
   workflow_dispatch:
-  push:
-    paths: ["windows/**"]
-  pull_request:
-    paths: ["windows/**"]
+# --- gatilhos originais ---
+# on:
+#   workflow_dispatch:
+#   push:
+#     paths: ["windows/**"]
+#   pull_request:
+#     paths: ["windows/**"]
 
 permissions:
   contents: read

@@ -244,29 +244,12 @@ echo "==> Creating DMG"
 # Remove previous DMG if exists
 rm -f "$OUTPUT_DMG"
 
-if command -v create-dmg >/dev/null 2>&1; then
-    create-dmg \
-        --volname "CodeIsland ${VERSION}" \
-        --window-pos 200 120 \
-        --window-size 600 400 \
-        --icon-size 100 \
-        --icon "CodeIsland.app" 175 190 \
-        --hide-extension "CodeIsland.app" \
-        --app-drop-link 425 190 \
-        --no-internet-enable \
-        --sandbox-safe \
-        "$OUTPUT_DMG" \
-        "$STAGING_DIR/"
-else
-    echo "==> create-dmg not found — using hdiutil fallback"
-    ln -sfn /Applications "$STAGING_DIR/Applications"
-    hdiutil create \
-        -volname "CodeIsland ${VERSION}" \
-        -srcfolder "$STAGING_DIR" \
-        -format UDZO \
-        -ov \
-        "$OUTPUT_DMG"
-fi
+# Instalador no padrão visual BSN (skill instalador-mac): fundo ilustrado, app → seta → Aplicativos.
+bash "$REPO_ROOT/scripts/mac/dmg-bsn.sh" \
+    --app "$APP_DIR" \
+    --fundo "$REPO_ROOT/scripts/mac/dmg-fundo.png" \
+    --out "$OUTPUT_DMG" \
+    --volume "CodeIsland ${VERSION}"
 
 # Codesign the DMG container itself. Without this `spctl --assess` reports
 # "no usable signature" on the dmg even when the inner .app is properly

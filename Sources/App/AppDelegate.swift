@@ -641,6 +641,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "grok": GrokActivityMonitor(),
             "gemini-api": GeminiAPIActivityMonitor(),
             "kimi": KimiActivityMonitor(),
+            // BSN: every Claude/Codex agent running inside herdr, addressed by pane_id.
+            "herdr": HerdrActivityMonitor(),
         ]
         var claudeMonitors: [ClaudeSessionMonitor] = []
         for profile in claudeProfiles {
